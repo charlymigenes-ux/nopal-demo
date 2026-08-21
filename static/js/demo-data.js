@@ -291,8 +291,7 @@
             finTitulo: 'Esto es NOPAL, y es libre.',
             finTexto: 'Lo que acabas de recorrer corre en una Raspberry Pi o en cualquier Debian, con tus máquinas de verdad. Si te sirve, el proyecto se sostiene con quien lo apoya.',
             finCerrar: 'Seguir mirando el demo',
-            cartel: '🌵 <strong>NOPAL LIVE DEMO</strong> — ningún dispositivo mostrado corresponde a '
-                + 'hardware físico. Puedes experimentar libremente: recargar la página restaura todo.',
+            cartel: '🌵 <strong>NOPAL LIVE DEMO</strong> — todo simulado, ningún hardware real. Recarga para reiniciar.',
             soloLectura: 'Modo demostración: la configuración es de solo lectura. Todo lo que se ve son datos simulados.',
             sugerencias: [
                 '¿Cómo van las impresiones ahora mismo?',
@@ -360,8 +359,7 @@
             finTitulo: 'This is NOPAL, and it’s free software.',
             finTexto: 'What you just explored runs on a Raspberry Pi or any Debian box, with your own machines. If it’s useful to you, the project keeps going thanks to the people who support it.',
             finCerrar: 'Keep exploring the demo',
-            cartel: '🌵 <strong>NOPAL LIVE DEMO</strong> — none of the devices shown are real hardware. '
-                + 'Feel free to experiment: reloading the page restores everything.',
+            cartel: '🌵 <strong>NOPAL LIVE DEMO</strong> — all simulated, no real hardware. Reload to reset.',
             soloLectura: 'Demo mode: settings are read-only. Everything you see is simulated data.',
             sugerencias: [
                 'How are the prints going right now?',
@@ -429,8 +427,7 @@
             finTitulo: 'Das ist NOPAL, und es ist freie Software.',
             finTexto: 'Was Sie gerade gesehen haben, läuft auf einem Raspberry Pi oder jedem Debian-System, mit Ihren echten Maschinen. Wenn es Ihnen nützt: Das Projekt lebt von denen, die es unterstützen.',
             finCerrar: 'Weiter im Demo umsehen',
-            cartel: '🌵 <strong>NOPAL LIVE DEMO</strong> — keines der gezeigten Geräte ist echte Hardware. '
-                + 'Probieren Sie ruhig alles aus: Ein Neuladen der Seite stellt alles wieder her.',
+            cartel: '🌵 <strong>NOPAL LIVE DEMO</strong> — alles simuliert, keine echte Hardware. Neu laden zum Zurücksetzen.',
             soloLectura: 'Demo-Modus: Die Einstellungen sind schreibgeschützt. Alle Daten sind simuliert.',
             sugerencias: [
                 'Wie laufen die Drucke gerade?',
@@ -500,8 +497,7 @@
             finTitulo: 'Voici NOPAL, et c’est un logiciel libre.',
             finTexto: 'Ce que vous venez de parcourir tourne sur un Raspberry Pi ou n’importe quel Debian, avec vos propres machines. Si cela vous est utile, le projet avance grâce à ceux qui le soutiennent.',
             finCerrar: 'Continuer à explorer la démo',
-            cartel: '🌵 <strong>NOPAL LIVE DEMO</strong> — aucun des appareils affichés n’est du matériel réel. '
-                + 'Essayez librement : recharger la page remet tout en place.',
+            cartel: '🌵 <strong>NOPAL LIVE DEMO</strong> — tout est simulé, aucun matériel réel. Rechargez pour réinitialiser.',
             soloLectura: 'Mode démonstration : la configuration est en lecture seule. Toutes les données sont simulées.',
             sugerencias: [
                 'Où en sont les impressions ?',
@@ -571,8 +567,7 @@
             finTitulo: 'Isto é o NOPAL, e é software livre.',
             finTexto: 'O que você acabou de percorrer roda num Raspberry Pi ou em qualquer Debian, com as suas máquinas de verdade. Se for útil para você, o projeto se mantém com quem o apoia.',
             finCerrar: 'Continuar vendo a demo',
-            cartel: '🌵 <strong>NOPAL LIVE DEMO</strong> — nenhum dos dispositivos mostrados é hardware real. '
-                + 'Pode experimentar à vontade: recarregar a página restaura tudo.',
+            cartel: '🌵 <strong>NOPAL LIVE DEMO</strong> — tudo simulado, nenhum hardware real. Recarregue para reiniciar.',
             soloLectura: 'Modo demonstração: a configuração é somente leitura. Tudo o que aparece são dados simulados.',
             sugerencias: [
                 'Como estão as impressões agora?',
@@ -1325,21 +1320,40 @@
                 .demo-cartel-acciones { display:flex; margin:7px 0 0; justify-content:center; }
             }
 
-            /* El cartel es fixed, así que no empuja nada por sí solo: hay que
-               reservarle el sitio a mano. Al contenido normal le basta el
-               padding, pero los elementos que NOPAL ancla abajo (la barra de
-               sugerencias del asistente, la pila de escenas del panel) también
-               son fixed y el padding del body no los mueve — a esos se les
-               suma la altura del cartel a su propio desplazamiento. */
-            body { padding-bottom: var(--demo-barra, 44px) !important; }
-            .ai-capability-dock { bottom: calc(18px + var(--demo-barra, 44px)) !important; }
-            .dashboard-fixed-stack { bottom: calc(78px + var(--demo-barra, 44px)) !important; }`;
+            /* Altura FIJA y una sola línea. Medirla con un ResizeObserver se
+               realimentaba: al reservar sitio cambiaba el layout, el cartel
+               reflowaba, y el hueco crecía sin parar hasta empujar la
+               cabecera fuera de la pantalla. Una constante no puede hacer eso. */
+            :root { --demo-barra: 44px; }
+            #demo-cartel {
+                height: var(--demo-barra); display: flex; align-items: center;
+                justify-content: center; gap: 14px; padding: 0 14px;
+            }
+            #demo-cartel > span:first-child {
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+            }
+            .demo-cartel-acciones { flex: 0 0 auto; }
+
+            /* El layout de NOPAL ocupa exactamente el alto de la pantalla y el
+               scroll vive dentro de .content — por eso el hueco se reserva ahí
+               y NO en el body: alargar el body empuja la cabecera fuera de
+               cuadro. Los dos elementos que el core ancla abajo son fixed y no
+               los mueve ningún padding, así que a esos se les suma la altura
+               del cartel a su propio desplazamiento. */
+            .ai-capability-dock { bottom: calc(18px + var(--demo-barra)) !important; }
+            .dashboard-fixed-stack { bottom: calc(78px + var(--demo-barra)) !important; }
+
+            @media (max-width: 720px) {
+                :root { --demo-barra: 40px; }
+                #demo-cartel { font-size: 11px; gap: 8px; }
+            }`;
         document.head.appendChild(hoja);
 
         const cartel = document.createElement('div');
+        cartel.id = 'demo-cartel';
         cartel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:99999;'
             + 'background:#3E8E5A;color:#fff;font:600 13px/1.4 system-ui,sans-serif;'
-            + 'padding:7px 14px;text-align:center;letter-spacing:.02em;';
+            + 'letter-spacing:.02em;';
 
         // El botón principal es "Instalar", no "Apoyar": quien llega quiere
         // el software. Quien además quiera apoyar lo encuentra al lado.
@@ -1349,17 +1363,20 @@
             + enlace(APOYO.apoyar, '☕ ' + T('apoyoApoyar'), 'demo-cta')
             + `</span>`;
 
-        const pintar = () => { cartel.innerHTML = T('cartel') + acciones(); };
+        // El texto va en su propio <span> para poder recortarlo con puntos
+        // suspensivos sin tocar los botones, que nunca deben desaparecer.
+        const pintar = () => { cartel.innerHTML = `<span>${T('cartel')}</span>` + acciones(); };
         pintar();
         document.body.appendChild(cartel);
 
-        // La altura real se mide, no se supone: el cartel crece a dos líneas
-        // en pantallas estrechas y en idiomas con frases más largas, y ahí es
-        // justo donde el solape se notaría más.
-        const medir = () => document.documentElement.style.setProperty(
-            '--demo-barra', cartel.offsetHeight + 'px');
-        medir();
-        new ResizeObserver(medir).observe(cartel);
+        // El hueco se reserva dentro del contenedor con scroll. Se lee su
+        // padding original una sola vez y se le suma la barra: así no se
+        // pisa el valor que trae el core ni se depende de conocerlo.
+        const contenido = document.querySelector('.content');
+        if (contenido) {
+            const propio = getComputedStyle(contenido).paddingBottom;
+            contenido.style.paddingBottom = `calc(${propio} + var(--demo-barra))`;
+        }
 
         // El cartel se reescribe al cambiar de idioma: app.js le pone `lang`
         // al <html> cada vez, así que ese atributo es la señal más barata

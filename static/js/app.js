@@ -8279,50 +8279,57 @@ function renderPrinters(printersInput) {
         boundPrinterCards.add(card);
         const port = Number(card.dataset.port);
 
-        card.querySelectorAll('[data-dev-action]').forEach(btn => {
-            btn.addEventListener('click', async event => {
-                // La ficha entera abre el panel de la impresora; un botón no
-                // debe hacer las dos cosas.
-                event.stopPropagation();
-                const accion = btn.dataset.devAction;
-                if (accion === 'pause' || accion === 'resume' || accion === 'cancel') {
-                    await handleActivePrintAction(accion, port);
-                    return;
-                }
-                if (accion === 'camera-setup') {
-                    // El botón de cámara sin cámara asignada lleva al
-                    // plugin: es donde se asigna una, y sin visor que
-                    // alternar no hay nada más útil que hacer.
-                    switchSection('camera-viewer');
-                    return;
-                }
-                if (accion === 'camera') {
-                    // Se delega en el interruptor que el plugin de cámaras
-                    // ya inyecta en la cabecera, en vez de repetir su
-                    // lógica: tener dos implementaciones del mismo botón es
-                    // lo que hacía aparecer la cámara dos veces.
-                    card.querySelector('.printer-card-camera-toggle')?.click();
-                    // Se actualiza esta ficha en el sitio. Repintar la
-                    // grilla entera desmontaba y volvía a montar TODAS las
-                    // cámaras, incluida la del láser de al lado: ese era el
-                    // parpadeo.
-                    const clave = card.querySelector('[data-cam-container]')?.dataset.camContainer;
-                    const visible = clave ? isCameraCardVisible(clave) : false;
-                    card.classList.toggle('is-thumb-mode', visible || deviceIsBusy(card.dataset.state));
-                    btn.classList.toggle('is-checked', visible);
-                    btn.setAttribute('aria-pressed', String(visible));
-                    btn.querySelector('.dev-action-check')?.classList.toggle('is-on', visible);
-                    return;
-                }
-                if (accion === 'preheat') {
-                    const impresora = allPrinters.find(p => String(p.port) === String(port)) || {};
-                    openMaterialPreheatModal({ type: 'klipper', id: port, name: impresora.name || `Klipper ${port}` });
-                    return;
-                }
-                // Cargar archivo, home, detalles y el menú abren el panel
-                // completo de la impresora, que es donde viven de verdad.
-                abrirPanelDeImpresora(port);
-            });
+        // Delegación en la ficha, no un listener por botón. El interior de
+        // la ficha se reescribe cuando se monta la cámara encima, y los
+        // botones recreados se quedaban sin listener mientras
+        // boundPrinterCards ya daba la ficha por enlazada: pausar, reanudar
+        // y cancelar dejaban de responder en cualquier impresora con cámara
+        // asignada. El listener vive en la ficha, que sí persiste.
+        card.addEventListener('click', async event => {
+            const btn = event.target.closest('[data-dev-action]');
+            if (!btn) return;
+            // La ficha entera abre el panel de la impresora; un botón no
+            // debe hacer las dos cosas. Como ambos listeners cuelgan del
+            // mismo nodo, hace falta detener también a los hermanos.
+            event.stopImmediatePropagation();
+            const accion = btn.dataset.devAction;
+            if (accion === 'pause' || accion === 'resume' || accion === 'cancel') {
+                await handleActivePrintAction(accion, port);
+                return;
+            }
+            if (accion === 'camera-setup') {
+                // El botón de cámara sin cámara asignada lleva al
+                // plugin: es donde se asigna una, y sin visor que
+                // alternar no hay nada más útil que hacer.
+                switchSection('camera-viewer');
+                return;
+            }
+            if (accion === 'camera') {
+                // Se delega en el interruptor que el plugin de cámaras
+                // ya inyecta en la cabecera, en vez de repetir su
+                // lógica: tener dos implementaciones del mismo botón es
+                // lo que hacía aparecer la cámara dos veces.
+                card.querySelector('.printer-card-camera-toggle')?.click();
+                // Se actualiza esta ficha en el sitio. Repintar la
+                // grilla entera desmontaba y volvía a montar TODAS las
+                // cámaras, incluida la del láser de al lado: ese era el
+                // parpadeo.
+                const clave = card.querySelector('[data-cam-container]')?.dataset.camContainer;
+                const visible = clave ? isCameraCardVisible(clave) : false;
+                card.classList.toggle('is-thumb-mode', visible || deviceIsBusy(card.dataset.state));
+                btn.classList.toggle('is-checked', visible);
+                btn.setAttribute('aria-pressed', String(visible));
+                btn.querySelector('.dev-action-check')?.classList.toggle('is-on', visible);
+                return;
+            }
+            if (accion === 'preheat') {
+                const impresora = allPrinters.find(p => String(p.port) === String(port)) || {};
+                openMaterialPreheatModal({ type: 'klipper', id: port, name: impresora.name || `Klipper ${port}` });
+                return;
+            }
+            // Cargar archivo, home, detalles y el menú abren el panel
+            // completo de la impresora, que es donde viven de verdad.
+            abrirPanelDeImpresora(port);
         });
 
         card.addEventListener('click', () => abrirPanelDeImpresora(port));
