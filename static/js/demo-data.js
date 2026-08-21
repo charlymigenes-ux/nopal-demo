@@ -30,6 +30,18 @@
     localStorage.setItem('theme', 'green');                                  // "NOPAL Style"
     localStorage.setItem('nopalThemeWallpaper', 'static/img/FONDO3_IA.webp');
 
+    // Vista de dispositivos: todas las máquinas en una sola fila (modo
+    // mixto), en lista y mostrando también las desconectadas. Las tres se
+    // fijan aunque dos coincidan con el arranque de fábrica: el demo debe
+    // presentarse SIEMPRE igual, no como lo dejara el visitante anterior.
+    localStorage.setItem('devicesGroupMode', 'mixed');
+    localStorage.setItem('printersViewMode', 'list');
+    localStorage.setItem('showOfflineMachines', 'true');
+
+    // El panel superior se repliega solo y se vuelve a abrir al pasar el
+    // ratón por encima, en vez de quedarse fijo comiéndose la pantalla.
+    localStorage.setItem('panelHeroAutoHideMode', 'hover');
+
     // ── Estado del taller de mentira ──────────────────────────────────
     // Los puertos imitan a los de una granja virtual (7211, 7212...) porque
     // es lo que NOPAL usa de verdad para Klipper; así los datos se parecen a
@@ -1372,6 +1384,17 @@
         // El hueco se reserva dentro del contenedor con scroll. Se lee su
         // padding original una sola vez y se le suma la barra: así no se
         // pisa el valor que trae el core ni se depende de conocerlo.
+        // El modo "hover" repliega el panel nada más cargar. Para el demo se
+        // mantiene abierto los primeros tres segundos: es el resumen del
+        // taller y es lo primero que conviene que se vea. Se insiste con un
+        // intervalo corto porque el arranque del core lo cierra más de una
+        // vez mientras termina de pintar.
+        const abrirPanel = setInterval(() => window.setPanelHeroCollapsed?.(false), 200);
+        setTimeout(() => {
+            clearInterval(abrirPanel);
+            window.setPanelHeroCollapsed?.(true);
+        }, 3000);
+
         const contenido = document.querySelector('.content');
         if (contenido) {
             const propio = getComputedStyle(contenido).paddingBottom;
