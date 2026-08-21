@@ -981,6 +981,99 @@
         }));
     }
 
+
+    // ── Consola, cotizador y editor ───────────────────────────────────
+    // Las tres secciones que quedaban en blanco. Los mensajes de consola
+    // imitan un diálogo real con Klipper (comando y respuesta), porque una
+    // consola vacía no enseña para qué sirve.
+    const CONSOLA = [
+        ['command', 'STATUS'],
+        ['response', 'Klipper state: Ready'],
+        ['command', 'M115'],
+        ['response', 'FIRMWARE_NAME:Klipper FIRMWARE_VERSION:v0.12.0-267-g6ba1b4a'],
+        ['command', 'QUERY_PROBE'],
+        ['response', 'probe: open'],
+        ['command', 'M105'],
+        ['response', 'ok T:210.4 /210.0 B:59.8 /60.0'],
+        ['command', 'SET_HEATER_TEMPERATURE HEATER=extruder TARGET=210'],
+        ['response', 'ok'],
+        ['response', 'Print started: soporte_camara_v3.gcode'],
+        ['command', 'GET_POSITION'],
+        ['response', 'mcu: stepper_x:12480 stepper_y:9376 stepper_z:2240'],
+        ['response', 'toolhead: X:118.400 Y:96.750 Z:22.400 E:412.093'],
+    ].map(([tipo, texto], i) => ({
+        time: Math.floor(Date.now() / 1000) - (14 - i) * 37,
+        type: tipo,
+        message: texto,
+    }));
+
+    const MAQUINAS_PRECIO = [
+        { id: 'maq-1', name: 'Anet ET4', kind: 'printer', watts: 180, rate_per_hour: 35 },
+        { id: 'maq-2', name: 'Ender 3 V2', kind: 'printer', watts: 210, rate_per_hour: 35 },
+        { id: 'maq-3', name: 'Sculpfun S30', kind: 'laser', watts: 90, rate_per_hour: 60 },
+        { id: 'maq-4', name: 'CNC 3018 Pro', kind: 'cnc', watts: 350, rate_per_hour: 75 },
+    ];
+
+    const MATERIALES_PRECIO = [
+        { id: 'mat-1', name: 'PLA', kind: 'filament', unit: 'g', unit_cost: 0.024 },
+        { id: 'mat-2', name: 'PETG', kind: 'filament', unit: 'g', unit_cost: 0.031 },
+        { id: 'mat-3', name: 'ABS', kind: 'filament', unit: 'g', unit_cost: 0.028 },
+        { id: 'mat-4', name: 'MDF 3 mm', kind: 'sheet', unit: 'cm2', unit_cost: 0.004 },
+        { id: 'mat-5', name: 'Acrílico 3 mm', kind: 'sheet', unit: 'cm2', unit_cost: 0.011 },
+    ];
+
+    const PRESUPUESTOS = [
+        ['soporte_camara_v3.stl', 'Anet ET4', 'PETG', 'printer', 214.5],
+        ['llavero_logo_x12.svg', 'Sculpfun S30', 'MDF 3 mm', 'laser', 96.0],
+        ['engranaje_helicoidal.stl', 'Ender 3 V2', 'ABS', 'printer', 158.25],
+    ].map(([archivo, maquina, material, tipo, total], i) => ({
+        id: `presupuesto-${i + 1}`,
+        file: archivo,
+        machine: maquina,
+        material,
+        job_type: tipo,
+        created_at: Math.floor((Date.now() - (i + 1) * 2 * DIAS) / 1000),
+        status: ['sent', 'accepted', 'draft'][i],
+        costs: { material: total * 0.42, machine: total * 0.38, energy: total * 0.06, margin: total * 0.14, total },
+    }));
+
+    // G-code de ejemplo para que el editor no abra en blanco: cabecera de
+    // slicer y unas capas reales, que es lo que hace que las herramientas de
+    // análisis de la sección tengan algo que analizar.
+    const GCODE_EJEMPLO = [
+        '; generado por NOPAL Live Demo',
+        '; archivo: soporte_camara_v3.gcode',
+        '; capa_altura = 0.2',
+        '; relleno = 20%',
+        '; material = PETG',
+        '',
+        'M190 S60          ; espera a que la cama llegue a 60 C',
+        'M104 S210         ; calienta la boquilla sin esperar',
+        'G28               ; home de todos los ejes',
+        'G29               ; nivelado de cama',
+        'M109 S210         ; ahora si, espera la boquilla',
+        'G92 E0',
+        'G1 Z0.200 F1200',
+        '',
+        '; ---- capa 1 ----',
+        'G1 X20.000 Y20.000 F3000',
+        'G1 X180.000 Y20.000 E12.4521 F1200',
+        'G1 X180.000 Y180.000 E24.9042',
+        'G1 X20.000 Y180.000 E37.3563',
+        'G1 X20.000 Y20.000 E49.8084',
+        '',
+        '; ---- capa 2 ----',
+        'G1 Z0.400 F1200',
+        'G1 X22.000 Y22.000 F3000',
+        'G1 X178.000 Y22.000 E61.9432 F1200',
+        'G1 X178.000 Y178.000 E74.0780',
+        '',
+        'M104 S0           ; apaga la boquilla',
+        'M140 S0           ; apaga la cama',
+        'G28 X0            ; aparta el cabezal',
+        'M84               ; libera los motores',
+    ].join('\n');
+
     // ── Rutas ─────────────────────────────────────────────────────────
     const rutas = {
         '/api/auth/setup-required': () => ({ required: false }),
@@ -1068,6 +1161,22 @@
             progress: Math.round(laser.progress), estimated_remaining: 8 * 60,
         }] }),
         '/api/laser/host': () => ({ host: '192.0.2.41' }),
+
+        '/api/console/messages': () => ({ messages: CONSOLA }),
+        '/api/macros': () => ({ macros: [
+            { name: 'START_PRINT', description: 'Precalienta, hace home y purga' },
+            { name: 'END_PRINT', description: 'Retrae, aparta el cabezal y enfría' },
+            { name: 'PAUSE_PARK', description: 'Pausa y aparca en la esquina' },
+            { name: 'LOAD_FILAMENT', description: 'Carga filamento' },
+            { name: 'UNLOAD_FILAMENT', description: 'Descarga filamento' },
+            { name: 'CALIBRATE_BED', description: 'Nivelado de cama en 9 puntos' },
+        ] }),
+        '/api/pricing/machines': () => ({ machines: MAQUINAS_PRECIO }),
+        '/api/pricing/materials': () => ({ materials: MATERIALES_PRECIO }),
+        '/api/pricing/quotes': () => ({ quotes: PRESUPUESTOS }),
+        '/api/pricing/settings': () => ({
+            settings: { currency: 'MXN', energy_cost_kwh: 1.85, margin_percent: 14, tax_percent: 16 },
+        }),
 
         // Spoolman: el inventario completo del taller de mentira. Los
         // colores son los mismos hex que ya usan las fichas del panel, así
@@ -1396,6 +1505,18 @@
             clearInterval(abrirPanel);
             window.setPanelHeroCollapsed?.(true);
         }, 3000);
+
+        // El editor de G-code trabaja contra un textarea local, sin backend:
+        // basta con dejarle un archivo cargado para que las herramientas de
+        // análisis de la sección tengan algo que analizar en vez de abrir en
+        // blanco. El evento input es lo que despierta al contador de líneas.
+        const editor = document.getElementById('gcode-editor-textarea');
+        if (editor && !editor.value.trim()) {
+            editor.value = GCODE_EJEMPLO;
+            editor.dispatchEvent(new Event('input', { bubbles: true }));
+            const nombre = document.getElementById('gcode-editor-filename');
+            if (nombre) nombre.textContent = 'soporte_camara_v3.gcode';
+        }
 
         const contenido = document.querySelector('.content');
         if (contenido) {
