@@ -1,0 +1,932 @@
+/* Integración con los temas de NOPAL — mismas variables que el resto del
+   dashboard (light/dark/green/red/custom), nada de colores fijos. Mismo
+   truco que usaba .aa-section (panel anterior), renombrado .wsa-*. */
+.wsa-section {
+    --wsa-accent: var(--accent);
+    --wsa-accent-rgb: var(--accent-rgb);
+    --wsa-card: color-mix(in srgb, var(--card-bg) 94%, transparent);
+    --wsa-panel: color-mix(in srgb, var(--panel-bg) 94%, transparent);
+    --wsa-control: color-mix(in srgb, var(--bg) 74%, var(--card-bg));
+    --wsa-border: var(--border);
+    --wsa-text-muted: var(--text-muted);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.4), transparent);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* ── Encabezado ── */
+.wsa-header {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--wsa-border);
+    background: linear-gradient(135deg, var(--wsa-panel), var(--wsa-card));
+}
+.wsa-header-icon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: 1px solid rgba(var(--wsa-accent-rgb), .35);
+    background: rgba(var(--wsa-accent-rgb), .12);
+    color: var(--wsa-accent);
+    flex-shrink: 0;
+}
+.wsa-header-copy { flex: 1; min-width: 200px; }
+.wsa-header-copy h1 { margin: 0; font-size: 1.2rem; color: var(--text); }
+.wsa-header-sub { color: var(--text-muted); font-size: .8rem; }
+.wsa-btn-icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 10px;
+    background: var(--wsa-control);
+    color: var(--text-secondary);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.wsa-btn-icon:hover { border-color: rgba(var(--wsa-accent-rgb), .5); color: var(--wsa-accent); }
+/* ── Layout de una sola columna a lo ancho (sin sidebar) ── */
+.wsa-layout {
+    flex: 1;
+    min-height: 0;
+    display: block;
+    overflow: auto;
+}
+.wsa-content {
+    padding: 20px 24px 40px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ── Tarjetas genéricas ── */
+.wsa-card {
+    border: 1px solid var(--wsa-border);
+    border-radius: var(--radius-lg, 14px);
+    background: var(--wsa-card);
+    padding: 18px 20px;
+}
+.wsa-card h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; font-size: .92rem; color: var(--text); }
+.wsa-card-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.wsa-text-muted { color: var(--text-muted); font-size: .74rem; }
+.wsa-card-title-row h2 { margin: 0; }
+.wsa-card-title-group { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.wsa-card-title-group h2 { margin: 0; }
+
+/* ── Menú "⋯" por ficha (ver detalles / actualizar firmware / eliminar) ── */
+.wsa-card-menu { position: relative; flex-shrink: 0; }
+.wsa-card-menu-btn {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--wsa-border);
+    border-radius: 8px;
+    background: var(--wsa-control);
+    color: var(--text-muted);
+    cursor: pointer;
+}
+.wsa-card-menu-btn:hover { border-color: rgba(var(--wsa-accent-rgb), .5); color: var(--wsa-accent); }
+.wsa-card-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 5;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 10px;
+    background: var(--wsa-card);
+    box-shadow: 0 12px 28px rgba(0,0,0,.35);
+}
+.wsa-card-menu-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 9px;
+    border: none;
+    border-radius: 7px;
+    background: none;
+    color: var(--text-secondary);
+    font-size: .8rem;
+    text-align: left;
+    cursor: pointer;
+}
+.wsa-card-menu-dropdown button:hover { background: var(--wsa-control); color: var(--text); }
+.wsa-card-menu-dropdown button.wsa-card-menu-danger { color: #f87171; }
+.wsa-card-menu-dropdown button.wsa-card-menu-danger:hover { background: rgba(248,113,113,.12); color: #f87171; }
+
+.wsa-lighting-dialog.wsa-led-details-dialog { width: min(380px, 92vw); }
+.wsa-led-details-rows { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 18px; }
+.wsa-led-details-rows > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--wsa-border); border-radius: 8px; background: var(--wsa-control); }
+.wsa-led-details-rows span { color: var(--text-muted); font-size: .76rem; }
+.wsa-led-details-rows strong { color: var(--text); font-size: .82rem; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+.wsa-empty { color: var(--text-muted); font-size: .85rem; padding: 6px 0; }
+.wsa-empty-note { color: var(--text-muted); font-size: .82rem; margin: 0; }
+.wsa-note { color: #f59e0b; font-size: .72rem; }
+.wsa-span-full {}
+
+.wsa-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.wsa-grid-3 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.wsa-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 16px 10px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 12px;
+    background: var(--wsa-control);
+    text-align: center;
+}
+.wsa-tile strong { font-size: 1.3rem; color: var(--text); }
+.wsa-tile span { font-size: .76rem; color: var(--text-muted); }
+
+/* ── Botones / switches ── */
+.wsa-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 10px;
+    background: var(--wsa-control);
+    color: var(--text-secondary);
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.wsa-btn:hover { border-color: rgba(var(--wsa-accent-rgb), .5); color: var(--wsa-accent); }
+.wsa-btn-accent { border-color: var(--wsa-accent); background: rgba(var(--wsa-accent-rgb), .16); color: var(--wsa-accent); }
+.wsa-btn-block { width: 100%; justify-content: center; margin-top: 10px; }
+.wsa-btn-small { padding: 5px 10px; font-size: .74rem; }
+
+/* Botón "Ajustes" de la tarjeta de perfil (sidebar) -- explícitamente sin
+   fondo/sombra propios (transparent), para que no herede ningún color de
+   acento del tema activo (el tema "Rojo" de NOPAL, por ejemplo, tiñe
+   --wsa-accent de rojo, y .wsa-btn-icon normal se ve como una alerta). */
+.wsa-btn-icon-ghost { background: transparent; box-shadow: none; }
+.wsa-btn-icon-ghost:hover { background: var(--wsa-control); }
+.wsa-btn-icon-danger { color: #f87171; border-color: rgba(248, 113, 113, .35); }
+.wsa-btn-icon-danger:hover { border-color: #f87171; background: rgba(248, 113, 113, .12); color: #f87171; }
+
+.wsa-switch { position: relative; display: inline-block; width: 38px; height: 21px; flex-shrink: 0; }
+.wsa-switch input { opacity: 0; width: 0; height: 0; }
+.wsa-switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--wsa-border); transition: background .15s ease; }
+.wsa-switch span::before { content: ''; position: absolute; width: 15px; height: 15px; left: 3px; top: 3px; border-radius: 50%; background: var(--card-bg); transition: transform .15s ease; }
+.wsa-switch input:checked + span { background: var(--wsa-accent); }
+.wsa-switch input:checked + span::before { transform: translateX(17px); }
+
+.wsa-status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; display: inline-block; }
+.wsa-status-dot.is-on { background: var(--wsa-accent); box-shadow: 0 0 8px rgba(var(--wsa-accent-rgb), .6); }
+.wsa-status-pill {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(var(--wsa-accent-rgb), .16);
+    color: var(--wsa-accent);
+    font-size: .68rem;
+    font-weight: 700;
+}
+.wsa-pill { font-size: .72rem; font-weight: 600; padding: 2px 8px; border: 1px solid currentColor; border-radius: 999px; }
+
+/* ── Tabs (placas / fuente de máquina) ── */
+.wsa-boardbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.wsa-boardbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.wsa-board-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.wsa-board-tab, .wsa-tab {
+    padding: 7px 14px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 999px;
+    background: var(--wsa-control);
+    color: var(--text-secondary);
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.wsa-board-tab.active, .wsa-tab.active { border-color: var(--wsa-accent); background: rgba(var(--wsa-accent-rgb), .16); color: var(--wsa-accent); }
+.wsa-board-tab-add { border-style: dashed; }
+.wsa-tabs { display: flex; gap: 6px; }
+
+/* ── Mapa de pines ── */
+.wsa-pinmap-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
+/* align-items: stretch (default) a propósito -- así la columna del medio
+   (.wsa-board-image) se estira a la altura real de las columnas de pines
+   de los costados, para que el dibujo del chip (placeholder SVG, ver
+   boardPlaceholderSvg) quede a la misma altura fila por fila. */
+.wsa-pin-columns { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; }
+.wsa-pin-col { display: flex; flex-direction: column; gap: 5px; }
+.wsa-board-image { display: flex; align-items: center; justify-content: center; padding: 8px 0; }
+.wsa-board-photo {
+    /* Tamaño 100% natural de la foto (caso con foto real, ej. T-Call) --
+       sin forzar alto, a diferencia del placeholder SVG genérico de abajo
+       que sí se estira para alinearse fila por fila. */
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .35);
+}
+/* Placeholder SVG (sin foto real): se estira a la altura completa de su
+   columna (ver boardImageHtml/boardPlaceholderSvg -- dibuja una fila por
+   cada fila real de pines, preserveAspectRatio="none" para que el estirado
+   no distorsione el ancho). */
+.wsa-board-image svg { align-self: stretch; height: 100%; }
+.wsa-showall-toggle { display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--text-muted); margin-bottom: 12px; cursor: pointer; }
+.wsa-showall-toggle input { width: 14px; height: 14px; accent-color: var(--wsa-accent); }
+.wsa-connected-tag { color: var(--wsa-accent); font-weight: 600; font-size: .68rem; text-transform: uppercase; letter-spacing: .02em; }
+.wsa-pin-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 8px;
+    background: var(--wsa-control);
+    cursor: pointer;
+    font-size: .76rem;
+}
+.wsa-pin-row:hover { border-color: rgba(var(--wsa-accent-rgb), .4); }
+.wsa-pin-row.selected { border-color: var(--wsa-accent); box-shadow: 0 0 0 1px var(--wsa-accent); }
+.wsa-pin-chip {
+    font-family: Consolas, monospace;
+    font-size: .68rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid;
+    white-space: nowrap;
+}
+.wsa-pin-desc { flex: 1; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wsa-pin-num { color: var(--text-muted); font-size: .68rem; width: 18px; text-align: center; }
+
+/* ── Inspector de pin ── */
+.wsa-inspector-card label { display: flex; flex-direction: column; gap: 5px; font-size: .78rem; color: var(--text-muted); margin-bottom: 10px; }
+.wsa-inspector-card input, .wsa-inspector-card select {
+    padding: 7px 9px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 8px;
+    background: var(--wsa-control);
+    color: var(--text);
+    font-size: .82rem;
+}
+.wsa-inspector-title { display: flex; align-items: baseline; gap: 8px; }
+.wsa-inspector-title strong { font-size: 1.1rem; color: var(--text); font-family: Consolas, monospace; }
+.wsa-inspector-title span { color: var(--text-muted); font-size: .78rem; }
+.wsa-inspector-sub { color: var(--text-muted); font-size: .8rem; margin: 2px 0 12px; }
+.wsa-category-badge { display: flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; margin-bottom: 12px; }
+.wsa-category-badge span { width: 9px; height: 9px; border-radius: 50%; }
+.wsa-category-badge em { font-style: normal; font-weight: 500; color: #f59e0b; }
+.wsa-inspector-common { border-top: 1px solid var(--wsa-border); padding-top: 10px; margin-top: 4px; }
+.wsa-inline-toggle { flex-direction: row !important; align-items: center; justify-content: space-between; }
+.wsa-param-title, .wsa-machine-section-title, .wsa-firmware-section-title {
+    margin-top: 6px;
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+/* ── Leyenda ── */
+.wsa-legend { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+.wsa-legend-item { display: flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--text-secondary); }
+.wsa-legend-item i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+/* ── Donut / progreso ── */
+.wsa-donut-wrap { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
+.wsa-donut { width: 90px; height: 90px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; position: relative; }
+.wsa-donut::before { content: ''; position: absolute; inset: 12px; border-radius: 50%; background: var(--wsa-card); }
+.wsa-donut span { position: relative; z-index: 1; font-size: 1.2rem; font-weight: 700; color: var(--text); display: flex; flex-direction: column; align-items: center; }
+.wsa-donut span small { font-size: .62rem; font-weight: 500; color: var(--text-muted); }
+.wsa-donut-legend { display: flex; flex-direction: column; gap: 4px; font-size: .74rem; color: var(--text-secondary); }
+.wsa-donut-legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.wsa-progress-row { display: flex; justify-content: space-between; font-size: .78rem; color: var(--text-secondary); margin-top: 6px; }
+.wsa-progress-bar { height: 6px; border-radius: 999px; background: var(--wsa-border); overflow: hidden; margin-top: 4px; }
+.wsa-progress-bar div { height: 100%; background: var(--wsa-accent); }
+.wsa-checklist { display: flex; flex-direction: column; gap: 6px; }
+.wsa-checklist-row { display: flex; justify-content: space-between; font-size: .82rem; color: var(--text-secondary); padding: 4px 0; border-bottom: 1px solid var(--wsa-border); }
+.wsa-checklist-row:last-child { border-bottom: none; }
+.wsa-checklist-row strong { color: var(--text); }
+
+/* ── Escenas por máquina ── */
+.wsa-machine-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.wsa-machine-card { border: 1px solid var(--wsa-border); border-radius: 12px; background: var(--wsa-control); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.wsa-machine-card-head { display: flex; align-items: center; justify-content: space-between; }
+.wsa-machine-card-head strong { font-size: .82rem; letter-spacing: .02em; color: var(--text); }
+.wsa-machine-nickname { color: var(--text-muted); font-size: .74rem; margin-bottom: 4px; }
+.wsa-var-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px; }
+.wsa-var-chips span { font-size: .68rem; padding: 3px 8px; border-radius: 999px; background: var(--wsa-panel); border: 1px solid var(--wsa-border); color: var(--text-secondary); }
+.wsa-inline-rules { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+.wsa-inline-rules div { display: flex; align-items: center; gap: 6px; font-size: .74rem; color: var(--text-secondary); }
+.wsa-output-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--wsa-border); font-size: .78rem; }
+.wsa-output-row span { flex: 1; color: var(--text); }
+.wsa-output-row small { color: var(--text-muted); }
+.wsa-machine-card-add { align-items: center; justify-content: center; text-align: center; border-style: dashed; color: var(--text-muted); cursor: pointer; }
+.wsa-machine-card-add div { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.wsa-machine-card-add:hover { border-color: rgba(var(--wsa-accent-rgb), .5); color: var(--wsa-accent); }
+
+/* ── Tabla de reglas ── */
+.wsa-table-scroll { overflow-x: auto; }
+.wsa-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.wsa-table th { text-align: left; padding: 6px 10px; color: var(--text-muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .02em; border-bottom: 1px solid var(--wsa-border); }
+.wsa-table td { padding: 8px 10px; border-bottom: 1px solid var(--wsa-border); color: var(--text-secondary); }
+.wsa-table tr:last-child td { border-bottom: none; }
+
+/* ── Actividad ── */
+.wsa-activity-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; max-height: 260px; overflow-y: auto; }
+.wsa-activity-list li { display: flex; align-items: center; gap: 9px; font-size: .8rem; }
+.wsa-activity-list li span:nth-child(2) { flex: 1; color: var(--text-secondary); }
+.wsa-activity-list em { color: var(--text-muted); font-style: normal; }
+.wsa-activity-list small { color: var(--text-muted); font-size: .72rem; white-space: nowrap; }
+
+/* ── Estado del sistema ── */
+.wsa-stats-rings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 0; align-items: center; text-align: center; margin-bottom: 10px; }
+.wsa-ring { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto; position: relative; }
+.wsa-ring::before { content: ''; position: absolute; inset: 7px; border-radius: 50%; background: var(--wsa-card); }
+.wsa-ring span { position: relative; z-index: 1; font-size: .74rem; font-weight: 700; color: var(--text); }
+.wsa-ring-text { background: var(--wsa-control) !important; }
+.wsa-ring-text::before { display: none; }
+.wsa-ring-label { font-size: .68rem; color: var(--text-muted); }
+.wsa-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+.wsa-info-grid div { display: flex; flex-direction: column; gap: 2px; }
+.wsa-info-grid label { font-size: .68rem; color: var(--text-muted); }
+.wsa-info-grid strong { font-size: .82rem; color: var(--text); }
+
+/* ── Ficha "Datos reales de la placa" -- misma base que .wsa-card pero con
+   acento de "dato verificado" y tiles con ícono, en vez del grid plano
+   label/valor que desentonaba con el resto de las fichas de esta página. ── */
+.wsa-card-verified {
+    border-color: rgba(var(--wsa-accent-rgb), .4);
+    background: linear-gradient(160deg, rgba(var(--wsa-accent-rgb), .07), var(--wsa-card) 55%);
+}
+.wsa-card-verified h2 { color: var(--wsa-accent); }
+.wsa-info-grid-device { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 0; }
+.wsa-info-tile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 11px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 10px;
+    background: var(--wsa-control);
+}
+.wsa-info-tile-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(var(--wsa-accent-rgb), .14);
+    color: var(--wsa-accent);
+}
+.wsa-info-tile div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wsa-info-tile label { font-size: .66rem; color: var(--text-muted); }
+.wsa-info-tile strong { font-size: .82rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Vistas filtradas (LEDs/Relés/Sensores) ── */
+.wsa-filtered-list, .wsa-template-list { display: flex; flex-direction: column; gap: 8px; }
+.wsa-device-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 10px;
+    background: var(--wsa-control);
+}
+.wsa-device-row div { flex: 1; display: flex; flex-direction: column; }
+.wsa-device-row strong { font-size: .84rem; color: var(--text); }
+.wsa-device-row small { font-size: .72rem; color: var(--text-muted); }
+
+/* ── Máquinas (vista general) ── */
+.wsa-machine-mini-list { display: flex; flex-direction: column; gap: 8px; }
+.wsa-machine-mini-row { display: flex; align-items: center; gap: 10px; }
+.wsa-machine-mini-row strong { font-size: .84rem; color: var(--text); display: block; }
+.wsa-machine-mini-row small { font-size: .72rem; color: var(--text-muted); }
+
+/* ── Control del taller: vista unificada de operación real ── */
+.wsa-workshop-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+.wsa-workshop-device, .wsa-workshop-actions, .wsa-workshop-state-cell, .wsa-workshop-activity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.wsa-workshop-device-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(var(--wsa-accent-rgb), .35);
+    border-radius: 12px;
+    background: rgba(var(--wsa-accent-rgb), .12);
+    color: var(--wsa-accent);
+}
+.wsa-workshop-device h2 { margin: 0; color: var(--text); font-size: 1.05rem; }
+.wsa-workshop-device p { margin: 3px 0 0; color: var(--text-muted); font-size: .78rem; }
+.wsa-workshop-actions { flex-wrap: wrap; justify-content: flex-end; }
+.wsa-workshop-actions .wsa-status-pill { display: inline-flex; align-items: center; gap: 6px; }
+.wsa-workshop-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.wsa-workshop-stat { display: flex; flex-direction: column; gap: 4px; }
+.wsa-workshop-stat > span { color: var(--text-muted); font-size: .74rem; }
+.wsa-workshop-stat strong { color: var(--text); font-size: 1.25rem; }
+.wsa-workshop-stat small { color: var(--text-muted); font-size: .72rem; }
+.wsa-workshop-tabs { display: flex; flex-wrap: wrap; gap: 7px; }
+.wsa-workshop-table td strong { color: var(--text); }
+.wsa-workshop-table code { color: var(--text-secondary); font-size: .73rem; }
+.wsa-workshop-state-cell small { min-width: 72px; color: var(--text-muted); }
+.wsa-workshop-led-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.wsa-workshop-led { display: flex; flex-direction: column; gap: 12px; }
+.wsa-workshop-led label { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-secondary); font-size: .8rem; }
+.wsa-workshop-led input[type="color"] { width: 52px; height: 34px; padding: 2px; border: 1px solid var(--wsa-border); border-radius: 8px; background: var(--wsa-control); }
+.wsa-workshop-led > small { color: var(--text-muted); }
+.wsa-workshop-sensors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.wsa-workshop-sensors > div { display: flex; flex-direction: column; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--wsa-border); }
+.wsa-workshop-sensors span, .wsa-workshop-sensors small { color: var(--text-muted); font-size: .72rem; }
+.wsa-workshop-sensors strong { color: var(--text); font-size: .9rem; }
+.wsa-workshop-scenes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.wsa-workshop-scenes .wsa-btn { width: 100%; justify-content: flex-start; }
+.wsa-workshop-scenes .wsa-btn span { flex: 1; text-align: left; }
+.wsa-workshop-scenes .wsa-btn small { color: var(--text-muted); }
+.wsa-scene-card { display: flex; align-items: stretch; gap: 6px; min-width: 0; }
+.wsa-scene-card .wsa-btn { flex: 1; min-width: 0; }
+.wsa-scene-card .wsa-card-menu-btn { flex-shrink: 0; }
+.wsa-workshop-empty { text-align: center; }
+.wsa-workshop-empty h2 { justify-content: center; }
+.wsa-workshop-loading { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 120px; }
+.wsa-workshop-loading p { color: var(--text-muted); }
+.wsa-workshop-activity { color: var(--text-muted); font-size: .76rem; }
+
+/* ── Consola / Alertas ── */
+.wsa-console {
+    background: #0b1220;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: Consolas, monospace;
+    font-size: .78rem;
+    color: #7fe0a5;
+    margin-bottom: 10px;
+}
+.wsa-alert-list { display: flex; flex-direction: column; gap: 8px; }
+.wsa-alert-row { padding: 10px 12px; border-radius: 10px; font-size: .82rem; border: 1px solid var(--wsa-border); }
+.wsa-alert-row.wsa-alert-warning { border-color: rgba(245, 158, 11, .4); background: rgba(245, 158, 11, .08); color: #f59e0b; }
+.wsa-alert-row.wsa-alert-info { border-color: rgba(59, 130, 246, .4); background: rgba(59, 130, 246, .08); color: #3b82f6; }
+
+/* ── Barra de estado inferior ── */
+.wsa-statusbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding: 8px 24px;
+    border-top: 1px solid var(--wsa-border);
+    background: var(--wsa-panel);
+    font-size: .72rem;
+    color: var(--text-muted);
+}
+.wsa-statusbar span { display: flex; align-items: center; gap: 5px; }
+
+/* ── Modal "Agregar placa" (mismo chrome que los overlays del panel anterior) ── */
+.wsa-panel-overlay { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; }
+.wsa-panel-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .5); }
+.wsa-panel-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(400px, 92vw);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px 20px 20px;
+    border: 1px solid rgba(var(--wsa-accent-rgb), .4);
+    border-radius: var(--radius-lg, 14px);
+    background: var(--card-bg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+}
+.wsa-panel-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.wsa-panel-header strong { display: block; color: var(--text); font-size: 1rem; }
+.wsa-panel-header small { color: var(--text-muted); font-size: .78rem; }
+.wsa-panel-header button { border: none; background: none; color: var(--text-muted); font-size: 1.3rem; line-height: 1; cursor: pointer; }
+.wsa-panel-dialog label { display: flex; flex-direction: column; gap: 5px; font-size: .8rem; color: var(--text-muted); }
+.wsa-panel-dialog input, .wsa-panel-dialog select {
+    padding: 8px 10px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 8px;
+    background: var(--wsa-control);
+    color: var(--text);
+    font-size: .85rem;
+}
+.wsa-panel-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+.wsa-panel-actions button {
+    padding: 8px 16px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 8px;
+    background: var(--wsa-control);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: .82rem;
+    cursor: pointer;
+}
+.wsa-panel-actions button.wsa-btn-accent { border-color: var(--wsa-accent); background: rgba(var(--wsa-accent-rgb), .18); color: var(--wsa-accent); }
+
+/* ── Modal "Gestionar placas" -- estilo "popup NOPAL" (hexágono + acentos +
+   cactus decorativos), igual criterio que .printer-send-modal-content del
+   core, pero con las variables --wsa-accent* del plugin para que se adapte
+   solo al tema activo en vez de quedar en verde fijo. ── */
+.wsa-manageboards-dialog {
+    position: relative;
+    width: min(560px, 94vw);
+    max-height: 80vh;
+    overflow: hidden;
+    padding-top: 26px;
+    /* Header con vignette negro al 60% que se apaga hacia transparente en
+       vez del fondo plano de .wsa-panel-dialog -- mismo look "popup NOPAL"
+       que el resto del rediseño, sin perder legibilidad en las filas de
+       abajo (el degradado se apaga bien antes de llegar ahí). */
+    background: linear-gradient(180deg, rgba(0, 0, 0, .6), transparent 60%), var(--card-bg);
+}
+.wsa-manageboards-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 3;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--wsa-border);
+    border-radius: 50%;
+    background: var(--wsa-control);
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.wsa-manageboards-close:hover { border-color: var(--wsa-accent); color: var(--wsa-accent); }
+.wsa-manageboards-cactus {
+    position: absolute;
+    bottom: 4px;
+    width: 68px;
+    height: auto;
+    opacity: .35;
+    filter: drop-shadow(0 0 16px rgba(var(--wsa-accent-rgb), .35));
+    pointer-events: none;
+    z-index: 0;
+}
+.wsa-manageboards-cactus-left { left: 8px; }
+.wsa-manageboards-cactus-right { right: 8px; }
+.wsa-manageboards-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+.wsa-manageboards-hexagon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-md, 10px);
+    background: rgba(var(--wsa-accent-rgb), .12);
+    border: 1px solid rgba(var(--wsa-accent-rgb), .4);
+    color: var(--wsa-accent);
+}
+.wsa-manageboards-title-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.wsa-manageboards-title-row h2 { margin: 0; font-size: 1.05rem; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: var(--text); white-space: nowrap; }
+.wsa-manageboards-trace { color: var(--wsa-accent); opacity: .55; flex-shrink: 0; }
+.wsa-manageboards-header p { margin: 0; font-size: .8rem; color: var(--text-muted); }
+.wsa-manageboards-list { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 56vh; padding-right: 2px; }
+.wsa-manageboard-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 12px;
+    background: var(--wsa-control);
+    transition: border-color .15s ease;
+    min-width: 0;
+}
+.wsa-manageboard-row:focus-within { border-color: rgba(var(--wsa-accent-rgb), .5); }
+/* minmax(0, 1fr) en vez de 1fr a secas -- sin esto, una columna de grid no
+   se achica más allá del ancho intrínseco de su contenido (el input), y esa
+   resistencia es justo lo que empujaba los botones ✓/✕ fuera del modal. */
+.wsa-manageboard-fields { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.wsa-manageboard-fields label { display: flex; flex-direction: column; gap: 4px; font-size: .72rem; color: var(--text-muted); min-width: 0; }
+.wsa-manageboard-fields input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 7px 9px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 7px;
+    background: var(--wsa-panel);
+    color: var(--text);
+    font-size: .8rem;
+}
+.wsa-manageboard-fields input:focus { border-color: var(--wsa-accent); outline: none; }
+.wsa-manageboard-fields .wsa-manageboard-ambient {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+}
+.wsa-manageboard-ambient input { width: auto; accent-color: var(--wsa-accent); cursor: pointer; }
+.wsa-manageboard-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* ── Asistente de firmware -- habla con el backend real, ver comentario en el JS ── */
+.wsa-wizard { display: flex; align-items: center; justify-content: center; min-height: 50vh; padding: 20px; }
+.wsa-wizard-card {
+    width: min(380px, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    padding: 28px 26px;
+    border: 1px solid var(--wsa-border);
+    border-radius: var(--radius-lg, 14px);
+    background: var(--wsa-card);
+}
+.wsa-wizard-card-wide { width: min(480px, 100%); align-items: stretch; text-align: left; }
+.wsa-wizard-card h2 { margin: 0; font-size: 1.05rem; color: var(--text); }
+.wsa-wizard-card p { margin: 0; color: var(--text-secondary); font-size: .85rem; line-height: 1.5; }
+.wsa-wizard-icon {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1px solid rgba(var(--wsa-accent-rgb), .35);
+    background: rgba(var(--wsa-accent-rgb), .12);
+    color: var(--wsa-accent);
+}
+.wsa-wizard-icon-ok { color: #22c55e; border-color: rgba(34, 197, 94, .4); background: rgba(34, 197, 94, .12); }
+.wsa-wizard-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 6px; }
+.wsa-wizard-error { color: #ef4444; font-size: .8rem; background: rgba(239, 68, 68, .1); border: 1px solid rgba(239, 68, 68, .3); border-radius: 8px; padding: 8px 10px; margin: 0; }
+.wsa-wizard-radio-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--wsa-border);
+    border-radius: 8px;
+    background: var(--wsa-control);
+    margin-bottom: 6px;
+    cursor: pointer;
+    font-size: .82rem;
+}
+.wsa-wizard-radio-row small { display: block; color: var(--text-muted); font-size: .72rem; }
+.wsa-spinner {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid var(--wsa-border);
+    border-top-color: var(--wsa-accent);
+    animation: wsa-spin 0.8s linear infinite;
+}
+@keyframes wsa-spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive: colapsa a una columna, igual que .help-center-layout ── */
+@media (max-width: 860px) {
+    .wsa-layout { grid-template-columns: 1fr; }
+    .wsa-sidebar { flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--wsa-border); }
+    .wsa-subnav { flex-direction: row; }
+    .wsa-profile-card { display: none; }
+    .wsa-pinmap-grid { grid-template-columns: 1fr; }
+    .wsa-pin-columns { grid-template-columns: 1fr; }
+    .wsa-grid-2 { grid-template-columns: 1fr; }
+    .wsa-grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .wsa-machine-cards { grid-template-columns: 1fr; }
+    .wsa-workshop-head { flex-direction: column; }
+    .wsa-workshop-actions { justify-content: flex-start; }
+    .wsa-workshop-sensors, .wsa-workshop-scenes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+    .wsa-workshop-stats, .wsa-workshop-sensors, .wsa-workshop-scenes { grid-template-columns: 1fr; }
+    .wsa-workshop-actions .wsa-btn { flex: 1; justify-content: center; }
+    .wsa-workshop-table th:nth-child(2), .wsa-workshop-table td:nth-child(2) { display: none; }
+}
+
+/* ── Encabezado del panel principal ── */
+.wsa-header { padding: 18px 20px 12px; }
+.wsa-header-icon { width: 62px; height: 62px; border-radius: 16px; color: #67ec58; background: #0c2415; }
+.wsa-header-copy { flex: 0 1 auto; }
+.wsa-header-copy h1 { font-size: 1.35rem; }
+.wsa-header-sub { display: block; margin-top: 8px; font-size: .9rem; }
+.wsa-header-sub strong { color: #57e04b; }
+.wsa-header-online { display: inline-flex; align-items: center; gap: 8px; margin-right: auto; padding: 8px 12px; border: 1px solid var(--wsa-border); border-radius: 10px; color: var(--text-muted); background: var(--wsa-control); font-size: .78rem; }
+.wsa-header-online.is-online { color: #57e04b; border-color: #1f6e32; background: #0c2817; }
+.wsa-header-actions { display: flex; align-items: center; gap: 9px; margin-left: auto; position: relative; }
+.wsa-header-actions .wsa-btn { min-height: 38px; font-weight: 650; }
+.wsa-header-actions .wsa-card-menu-dropdown { top: calc(100% + 8px); }
+.wsa-header > #wsa-close-btn { order: 6; border: 0; background: transparent; }
+
+.wsa-docs-mode .wsa-content { padding: 18px 24px 36px; }
+.wsa-back-to-dashboard { margin-bottom: 14px; }
+
+/* ── Panel principal: barra de stats ── */
+.wsa-dashboard { display: flex; flex-direction: column; gap: 16px; }
+.wsa-dash-statbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.wsa-dash-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px; border: 1px solid var(--wsa-border); border-radius: 12px; background: var(--wsa-card); text-align: center; }
+.wsa-dash-stat svg { color: var(--wsa-accent); }
+.wsa-dash-stat strong { font-size: 1.15rem; color: var(--text); }
+.wsa-dash-stat span { font-size: .68rem; color: var(--text-muted); }
+.wsa-dash-stat.is-warning svg, .wsa-dash-stat.is-warning strong { color: #f59e0b; }
+
+/* ── Galería de tarjetas de placas ── */
+.wsa-dash-boards-tools { display: flex; align-items: center; gap: 10px; }
+.wsa-dash-sort { display: flex; align-items: center; gap: 6px; font-size: .74rem; color: var(--text-muted); }
+.wsa-dash-sort select { padding: 5px 8px; border: 1px solid var(--wsa-border); border-radius: 8px; background: var(--wsa-control); color: var(--text); font-size: .78rem; }
+.wsa-status-pill-is-warning, .wsa-status-pill.wsa-status-pill-is-warning { display: inline-flex; align-items: center; gap: 4px; background: rgba(245, 158, 11, .16); color: #f59e0b; margin-left: 8px; }
+.wsa-board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.wsa-board-grid.is-list { grid-template-columns: 1fr; }
+.wsa-board-card { display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid var(--wsa-border); border-radius: 12px; background: var(--wsa-control); cursor: pointer; }
+.wsa-board-card.is-selected { border-color: var(--wsa-accent); box-shadow: 0 0 0 1px var(--wsa-accent); }
+.wsa-board-card.is-online { border-color: color-mix(in srgb, var(--wsa-accent) 35%, var(--wsa-border)); }
+.wsa-board-card.is-warning { border-color: rgba(245, 158, 11, .45); }
+.wsa-board-card-media { height: 74px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.wsa-board-card-media svg, .wsa-board-card-media img { max-height: 100%; }
+.wsa-board-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.wsa-board-card-head strong { display: block; font-size: .86rem; color: var(--text); }
+.wsa-board-card-head small { display: block; color: var(--text-muted); font-size: .68rem; }
+.wsa-status-pill-is-online { background: rgba(var(--wsa-accent-rgb), .16); color: var(--wsa-accent); }
+.wsa-status-pill-is-warning { background: rgba(245, 158, 11, .16); color: #f59e0b; }
+.wsa-status-pill-is-offline { background: var(--wsa-panel); color: var(--text-muted); }
+.wsa-board-card-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: .7rem; color: var(--text-muted); }
+.wsa-board-card-meta span { display: flex; align-items: center; gap: 4px; }
+.wsa-board-card-activity { display: flex; align-items: center; gap: 6px; font-size: .72rem; color: var(--text-secondary); padding: 6px 8px; border-radius: 8px; background: var(--wsa-panel); }
+.wsa-board-activity-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+.wsa-board-activity-dot.is-on { background: var(--wsa-accent); box-shadow: 0 0 6px rgba(var(--wsa-accent-rgb), .6); }
+.wsa-board-activity-dot.is-off { background: #667681; }
+.wsa-board-card-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; }
+.wsa-board-card-stats div { padding: 6px 2px; border-radius: 8px; background: var(--wsa-panel); }
+.wsa-board-card-stats strong { display: block; font-size: .88rem; color: var(--text); }
+.wsa-board-card-stats span { font-size: .62rem; color: var(--text-muted); }
+.wsa-board-card-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.wsa-board-card-actions .wsa-btn { flex: 1; justify-content: center; min-width: 0; }
+.wsa-board-grid.is-list .wsa-board-card { flex-direction: row; align-items: center; flex-wrap: wrap; }
+.wsa-board-grid.is-list .wsa-board-card-media { width: 60px; height: 50px; flex-shrink: 0; }
+
+/* ── Vista rápida + acciones rápidas ── */
+.wsa-dash-lower { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 14px; }
+.wsa-quickview-body { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px; }
+.wsa-quickview-media { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.wsa-quickview-media svg, .wsa-quickview-media img { max-width: 100%; }
+.wsa-quickview-state { display: inline-flex; align-items: center; gap: 6px; font-size: .74rem; color: var(--text-secondary); }
+.wsa-quickview-main { min-width: 0; }
+.wsa-classic-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 13px; }
+.wsa-classic-tabs button { padding: 6px 13px; border: 1px solid var(--wsa-border); border-radius: 20px; background: transparent; color: var(--text-muted); cursor: pointer; font-size: .72rem; }
+.wsa-classic-tabs button.active { color: var(--wsa-accent); border-color: color-mix(in srgb, var(--wsa-accent) 45%, transparent); background: rgba(var(--wsa-accent-rgb), .12); }
+.wsa-quickview-pinlist { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; }
+.wsa-quickview-pinlist > div { display: grid; grid-template-columns: 60px 1fr auto; align-items: center; gap: 8px; font-size: .74rem; }
+.wsa-quickview-pinlist em { color: var(--text-muted); font-style: normal; font-size: .68rem; }
+.wsa-quickview-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--wsa-border); }
+.wsa-classic-relays { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.wsa-classic-relays article { min-width: 0; display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center; gap: 8px; min-height: 58px; padding: 8px 10px; border: 1px solid var(--wsa-border); border-radius: 8px; background: var(--wsa-control); }
+.wsa-classic-relays article > svg { color: #91a1ac; }
+.wsa-classic-relays p { min-width: 0; display: flex; flex-direction: column; gap: 4px; margin: 0; }
+.wsa-classic-relays p strong, .wsa-classic-relays p span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wsa-classic-relays p strong { font-size: .74rem; }
+.wsa-classic-relays p span, .wsa-classic-unassigned { color: var(--text-muted); font-size: .65rem; }
+.wsa-classic-unassigned { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.wsa-classic-unassigned:hover { color: var(--wsa-accent); }
+.wsa-classic-control-footer { display: flex; align-items: center; gap: 22px; min-height: 39px; margin-top: 10px; padding: 5px 10px; border: 1px solid var(--wsa-border); border-radius: 8px; color: var(--text-muted); font-size: .68rem; }
+.wsa-classic-control-footer span { display: flex; align-items: center; gap: 7px; }
+.wsa-classic-control-footer button { margin-left: auto; }
+.wsa-classic-loading, .wsa-classic-empty { min-height: 112px; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); }
+.wsa-classic-telemetry { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
+.wsa-classic-telemetry article { min-height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--wsa-border); border-radius: 8px; background: var(--wsa-control); text-align: center; }
+.wsa-classic-telemetry span, .wsa-classic-telemetry small { color: var(--text-muted); font-size: .68rem; }
+.wsa-scene-list { display: flex; flex-direction: column; gap: 7px; }
+.wsa-scene-row { display: flex; align-items: center; gap: 8px; }
+.wsa-scene-row .wsa-btn { width: auto; flex-shrink: 0; }
+.wsa-scene-row small { flex: 1; }
+
+.wsa-quickactions-block h3, .wsa-card-title-row h3 { margin: 0 0 8px; font-size: .82rem; color: var(--text); }
+.wsa-quickactions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+.wsa-quickactions-grid .wsa-btn { justify-content: center; }
+
+/* ── Recursos y ayuda ── */
+.wsa-resources-footer { padding: 16px 20px; border: 1px solid var(--wsa-border); border-radius: var(--radius-lg, 14px); background: var(--wsa-card); }
+.wsa-resources-footer h2 { margin: 0 0 12px; font-size: .88rem; color: var(--text); }
+.wsa-resources-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.wsa-resource-link { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--wsa-border); border-radius: 10px; background: var(--wsa-control); color: var(--text-secondary); cursor: pointer; text-align: left; }
+.wsa-resource-link:hover { border-color: rgba(var(--wsa-accent-rgb), .5); }
+.wsa-resource-link svg { flex-shrink: 0; color: var(--wsa-accent); }
+.wsa-resource-link strong { display: block; font-size: .78rem; color: var(--text); }
+.wsa-resource-link small { color: var(--text-muted); font-size: .68rem; }
+
+/* ── Documentación integrada ── */
+.wsa-docs { max-width: 1280px; width: 100%; margin: 0 auto; }
+.wsa-docs-hero { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px; border: 1px solid #266a35; border-radius: 14px; background: linear-gradient(135deg, rgba(21, 75, 35, .28), var(--wsa-card)); }
+.wsa-docs-hero span, .wsa-doc-card > small { color: #57e04b; font-size: .68rem; font-weight: 700; letter-spacing: .1em; }
+.wsa-docs-hero h2 { margin: 7px 0; font-size: 1.45rem; }
+.wsa-docs-hero p { margin: 0; color: var(--text-muted); }
+.wsa-docs > nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; padding: 10px; border: 1px solid var(--wsa-border); border-radius: 10px; background: var(--wsa-panel); }
+.wsa-docs > nav a { padding: 6px 10px; border-radius: 7px; color: var(--text-secondary); text-decoration: none; font-size: .74rem; }
+.wsa-docs > nav a:hover { color: #57e04b; background: var(--wsa-control); }
+.wsa-docs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.wsa-doc-card { scroll-margin-top: 70px; padding: 20px; border: 1px solid var(--wsa-border); border-radius: 12px; background: var(--wsa-card); }
+.wsa-doc-wide { grid-column: 1 / -1; }
+.wsa-doc-card h3 { margin: 6px 0 15px; font-size: 1.02rem; }
+.wsa-doc-card ol { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 0; list-style: none; counter-reset: steps; }
+.wsa-doc-card ol li, .wsa-doc-features article { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid var(--wsa-border); border-radius: 9px; background: var(--wsa-control); }
+.wsa-doc-card li span, .wsa-doc-features span { color: var(--text-muted); font-size: .72rem; line-height: 1.5; }
+.wsa-doc-features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.wsa-doc-pinlist { max-height: 360px; overflow: auto; margin-bottom: 12px; }
+.wsa-doc-pinlist > div { display: grid; grid-template-columns: 90px 1fr auto; gap: 9px; padding: 8px 0; border-bottom: 1px solid var(--wsa-border); align-items: center; font-size: .72rem; }
+.wsa-doc-pinlist code, .wsa-doc-commands code { color: #57e04b; }
+.wsa-doc-pinlist em { color: var(--text-muted); font-style: normal; }
+.wsa-doc-warning { border-color: rgba(245, 158, 11, .4); background: rgba(245, 158, 11, .05); }
+.wsa-doc-warning li { margin-bottom: 8px; color: var(--text-secondary); font-size: .76rem; line-height: 1.5; }
+.wsa-doc-card dl { display: grid; grid-template-columns: 130px 1fr; gap: 10px; font-size: .75rem; }
+.wsa-doc-card dt { color: var(--text-muted); }
+.wsa-doc-card dd { margin: 0; }
+.wsa-doc-commands { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.wsa-doc-commands code { display: flex; justify-content: space-between; gap: 9px; padding: 9px; border: 1px solid var(--wsa-border); border-radius: 7px; background: var(--wsa-control); }
+.wsa-doc-commands span { color: var(--text-muted); font-family: inherit; }
+
+/* Alta directa de iluminación desde una placa ya detectada */
+.wsa-lighting-modal { position: fixed; inset: 0; z-index: 12000; display: grid; place-items: center; padding: 18px; }
+.wsa-lighting-backdrop { position: absolute; inset: 0; background: rgba(1,7,12,.82); backdrop-filter: blur(8px); }
+.wsa-lighting-dialog { position: relative; width: min(590px, 94vw); max-height: 90vh; overflow: auto; box-sizing: border-box; padding: 24px; border: 1px solid #26733a; border-radius: 18px; background: var(--wsa-panel); box-shadow: 0 26px 80px #000a; }
+.wsa-lighting-close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border: 1px solid #7f2933; border-radius: 50%; background: #35131a; color: #ff7b87; font-size: 22px; cursor: pointer; }
+.wsa-lighting-heading { display: flex; gap: 13px; padding-right: 35px; margin-bottom: 18px; }
+.wsa-lighting-heading > svg { flex: 0 0 44px; width: 44px; height: 44px; padding: 9px; box-sizing: border-box; border: 1px solid #26733a; border-radius: 12px; color: #57e04b; background: #102b1a; }
+.wsa-lighting-heading small { color: #57e04b; letter-spacing: .12em; font-weight: 750; }
+.wsa-lighting-heading h2 { margin: 4px 0; }
+.wsa-lighting-heading p, .wsa-lighting-note { margin: 0; color: var(--text-muted); font-size: .75rem; line-height: 1.5; }
+.wsa-lighting-dialog > label, .wsa-lighting-grid label, .wsa-lighting-credentials label { display: grid; gap: 6px; margin-bottom: 12px; color: var(--text-secondary); font-size: .72rem; }
+.wsa-lighting-dialog input, .wsa-lighting-dialog select { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid var(--wsa-border); border-radius: 8px; background: var(--wsa-control); color: var(--text); }
+.wsa-lighting-grid, .wsa-lighting-credentials { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.wsa-lighting-credentials { grid-template-columns: 1fr 1fr; }
+.wsa-lighting-preview { display: flex; flex-wrap: wrap; gap: 5px; min-height: 28px; margin: 3px 0 12px; padding: 10px; border: 1px solid var(--wsa-border); border-radius: 10px; background: var(--wsa-control); }
+.wsa-lighting-preview i { width: 17px; height: 17px; border-radius: 5px; background: #57e04b; box-shadow: 0 0 9px #57e04b77; }
+.wsa-lighting-preview span { color: var(--text-muted); font-size: .7rem; }
+.wsa-lighting-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 18px; }
+.wsa-scene-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.wsa-scene-action-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 34px 28px; align-items: center; gap: 8px; }
+.wsa-scene-action-row select, .wsa-scene-action-row input[type="color"] { margin: 0; }
+.wsa-scene-action-row input[type="color"] { width: 100%; height: 34px; padding: 3px; }
+.wsa-scene-action-row input[type="color"][hidden] { display: block; visibility: hidden; pointer-events: none; }
+@media (max-width: 620px) { .wsa-scene-action-row { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; } .wsa-scene-action-row input[type="color"] { grid-column: 1; } .wsa-scene-action-row [data-scene-action-remove] { grid-column: 2; justify-self: end; } }
+
+/* Modo de la escena (normal/doble/múltiple) + un bloque por estado en modo
+   doble/múltiple -- ver openSceneEditor/sceneVariantBlockHtml en
+   arduino-accessories.js. */
+.wsa-scene-mode-field { margin-bottom: 14px; }
+.wsa-scene-mode-label { display: block; font-size: .72rem; color: var(--text-secondary); margin-bottom: 6px; }
+.wsa-scene-variant { padding: 12px; border: 1px solid var(--wsa-border); border-radius: 10px; background: var(--wsa-control); margin-bottom: 10px; }
+.wsa-scene-variant-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.wsa-scene-variant-header input[type="text"] { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--wsa-border); border-radius: 8px; background: var(--wsa-panel); color: var(--text); font-weight: 600; }
+
+/* Estado activo de una escena doble/múltiple, junto al nombre en cualquier
+   lugar donde se muestre el botón de la escena (ver sceneStateBadge). */
+.wsa-scene-state-badge { padding: 2px 7px; border-radius: 999px; background: rgba(34, 197, 94, .16); color: #22c55e; font-size: .66rem; font-weight: 700; }
+.wsa-workshop-light-toolbar { margin-bottom: 10px; }
+.wsa-led-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.wsa-led-presets button { padding: 6px 4px; border: 1px solid var(--wsa-border); border-radius: 7px; background: var(--wsa-control); color: var(--text-secondary); cursor: pointer; font-size: .65rem; }
+.wsa-led-presets button:hover { border-color: #57e04b; color: #57e04b; }
+@media (max-width: 620px) { .wsa-lighting-grid { grid-template-columns: 1fr; } .wsa-lighting-credentials { grid-template-columns: 1fr; } }
+
+@media (max-width: 1200px) {
+    .wsa-dash-lower { grid-template-columns: 1fr; }
+    .wsa-quickview-body { grid-template-columns: 120px minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+    .wsa-header-actions { order: 7; width: 100%; flex-wrap: wrap; }
+    .wsa-quickview-body { grid-template-columns: 1fr; }
+    .wsa-quickview-media { flex-direction: row; justify-content: center; }
+    .wsa-board-card-stats { grid-template-columns: repeat(2, 1fr); }
+    .wsa-quickactions-grid { grid-template-columns: 1fr; }
+    .wsa-docs-grid { grid-template-columns: 1fr; }
+    .wsa-doc-wide { grid-column: 1; }
+    .wsa-doc-card ol, .wsa-doc-features { grid-template-columns: 1fr; }
+}

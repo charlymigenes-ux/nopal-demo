@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "id": "font-library",
+  "name": "Texto para fabricación",
+  "version": "0.5.1",
+  "publisher": "NOPAL Labs",
+  "category": "Diseño",
+  "description": "Crea texto con medidas físicas, valida su fabricación y agrégalo como trayectos editables a un proyecto NOPAL.",
+  "permissions": [
+    "Leer tipografías locales",
+    "Agregar elementos al proyecto actual",
+    "Guardar SVG en la biblioteca",
+    "Enviar diseños a la cola de producción"
+  ],
+  "compatibility": ["Láser", "CNC"],
+  "frontend": {
+    "script": "frontend/font-library.js",
+    "style": "frontend/font-library.css",
+    "section": "font-library"
+  }
+}

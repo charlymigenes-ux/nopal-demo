@@ -1,0 +1,68 @@
+[
+  {
+    "id": "bebas-neue",
+    "name": "Bebas Neue",
+    "file": "BebasNeue-Regular.ttf",
+    "directory": "bebas-neue",
+    "category": "display",
+    "style": "Regular",
+    "cutSafe": false,
+    "license": "OFL-1.1",
+    "source": "Google Fonts"
+  },
+  {
+    "id": "poppins",
+    "name": "Poppins",
+    "file": "Poppins-Regular.ttf",
+    "directory": "poppins",
+    "category": "sans",
+    "style": "Regular",
+    "cutSafe": false,
+    "license": "OFL-1.1",
+    "source": "Google Fonts"
+  },
+  {
+    "id": "orbitron",
+    "name": "Orbitron",
+    "file": "Orbitron-wght.ttf",
+    "directory": "orbitron",
+    "category": "tech",
+    "style": "Variable 400–900",
+    "cutSafe": false,
+    "license": "OFL-1.1",
+    "source": "Google Fonts"
+  },
+  {
+    "id": "cinzel",
+    "name": "Cinzel",
+    "file": "Cinzel-wght.ttf",
+    "directory": "cinzel",
+    "category": "serif",
+    "style": "Variable 400–900",
+    "cutSafe": false,
+    "license": "OFL-1.1",
+    "source": "Google Fonts"
+  },
+  {
+    "id": "stardos-stencil",
+    "name": "Stardos Stencil",
+    "file": "StardosStencil-Regular.ttf",
+    "directory": "stardos-stencil",
+    "category": "stencil",
+    "style": "Regular",
+    "cutSafe": true,
+    "license": "OFL-1.1",
+    "source": "Google Fonts"
+  },
+  {
+    "id": "pacifico",
+    "name": "Pacifico",
+    "file": "Pacifico-Regular.ttf",
+    "directory": "pacifico",
+    "category": "script",
+    "style": "Regular",
+    "cutSafe": false,
+    "license": "OFL-1.1",
+    "source": "Google Fonts"
+  }
+]

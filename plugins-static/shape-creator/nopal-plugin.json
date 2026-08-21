@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "id": "shape-creator",
+  "name": "Creador de formas",
+  "version": "1.2.0",
+  "publisher": "NOPAL Labs",
+  "category": "Diseño",
+  "description": "Crea rectángulos, círculos, polígonos y formas paramétricas listas para láser o CNC.",
+  "permissions": ["Guardar archivos en la biblioteca"],
+  "compatibility": ["Láser", "CNC"],
+  "frontend": {
+    "script": "frontend/shape-creator.js",
+    "style": "frontend/shape-creator.css",
+    "section": "shape-creator"
+  }
+}

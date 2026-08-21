@@ -1,0 +1,7 @@
+# Ajustes locales de Claude Code: registran rutas y comandos de la máquina
+# de desarrollo, no tienen nada que hacer en un demo público.
+.claude/
+
+# Archivos sueltos de trabajo
+_muestra.png
+*.bak
