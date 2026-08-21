@@ -19962,9 +19962,11 @@ if (viewGridPrintersBtn) {
 if (viewListPrintersBtn) {
     viewListPrintersBtn.addEventListener('click', () => updatePrintersViewMode('list'));
 }
-if (printersViewMode === 'list') {
-    updatePrintersViewMode('list');
-}
+// Se aplica siempre el modo guardado, no solo cuando es 'list'. Con 'grid'
+// guardado no se llamaba a nada: la rejilla salía bien (es el estado sin
+// clase) pero los botones seguían resaltando "lista", contradiciendo lo que
+// el usuario tenía delante.
+updatePrintersViewMode(printersViewMode);
 
 const viewGridMarlinBtn = document.getElementById('view-grid-marlin');
 const viewListMarlinBtn = document.getElementById('view-list-marlin');

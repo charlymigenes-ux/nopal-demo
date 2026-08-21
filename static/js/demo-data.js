@@ -31,11 +31,13 @@
     localStorage.setItem('nopalThemeWallpaper', 'static/img/FONDO3_IA.webp');
 
     // Vista de dispositivos: todas las máquinas en una sola fila (modo
-    // mixto), en lista y mostrando también las desconectadas. Las tres se
-    // fijan aunque dos coincidan con el arranque de fábrica: el demo debe
-    // presentarse SIEMPRE igual, no como lo dejara el visitante anterior.
+    // mixto), en cuadrícula y mostrando también las desconectadas. Las tres
+    // se fijan aunque alguna coincida con el arranque de fábrica: el demo
+    // debe presentarse SIEMPRE igual, no como lo dejara el visitante
+    // anterior. Ojo: 'list' es el valor por defecto del core, así que sin
+    // esta línea la cuadrícula no se aplicaría.
     localStorage.setItem('devicesGroupMode', 'mixed');
-    localStorage.setItem('printersViewMode', 'list');
+    localStorage.setItem('printersViewMode', 'grid');
     localStorage.setItem('showOfflineMachines', 'true');
 
     // El panel superior se repliega solo y se vuelve a abrir al pasar el
