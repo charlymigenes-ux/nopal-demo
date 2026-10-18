@@ -1477,6 +1477,11 @@
             if (camino === '/api/jobs/deletions') return json(registroControl());
             if (camino === '/api/laser/sd/status') return json({ present: new URLSearchParams(consulta).get('host') === '192.0.2.42' });
             if (camino === '/api/laser/job/last') return json({ job: null });
+            if (camino === '/api/laser/info') {
+                const cnc = new URLSearchParams(consulta).get('host') === '192.0.2.42';
+                return json({ Device: cnc ? 'CNC 3018 Pro' : 'Sculpfun S30', Chip: 'ESP32', Firmware: cnc ? 'GRBL 1.1h' : 'GRBL 1.1f',
+                    Description: 'Placa GRBL por WiFi' });
+            }
             if (camino === '/api/laser/registry/status') return json({ lasers: rutas['/api/laser/registry']().lasers.map(l => Object.assign({ online: true }, l)) });
             // Tarjetas de Configuración que esperan una forma concreta (sin ella el recuadro revienta).
             if (camino === '/api/config-backup/groups') {
@@ -1577,9 +1582,9 @@
         if (camino === '/api/laser/status') {
             const host = new URLSearchParams(url.split('?')[1] || '').get('host');
             return json(host === '192.0.2.42'
-                ? { connected: true, host, state: cnc.estado, firmware: 'GRBL 1.1h', spindle_rpm: 0, feed: 0 }
+                ? { connected: true, host, state: cnc.estado, firmware: 'GRBL 1.1h', spindle_rpm: 0, feed: 0, x: 0, y: 0, z: 0, speed: 0 }
                 : { connected: true, host: '192.0.2.41', state: 'Run', firmware: 'GRBL 1.1f',
-                    laser_power: 780, feed: 1400, progress: Math.round(laser.progress) });
+                    laser_power: 780, feed: 1400, x: 62.4, y: 38.15, z: 0, speed: 780, progress: Math.round(laser.progress) });
         }
 
         if (metodo !== 'GET' && !ESCRITURA_OK.some(p => p.test(camino))) {
