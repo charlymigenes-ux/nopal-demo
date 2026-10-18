@@ -1,0 +1,7 @@
+# Los archivos generados por build.py salen con LF, igual que el core.
+* text=auto eol=lf
+*.webp binary
+*.ico binary
+*.mp3 binary
+*.ttf binary
+*.gif binary
