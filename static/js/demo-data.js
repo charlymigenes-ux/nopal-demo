@@ -926,6 +926,141 @@
         snapshot: null,
     }));
 
+    // ── Historial de trabajos con control (3D + láser + CNC) ───────────
+    // GET /api/jobs/history devuelve una lista unificada ya filtrada y paginada,
+    // más un resumen por tipo y si quien mira puede eliminar. Aquí se arma con
+    // los mismos trabajos que ya muestran las otras pantallas, más unos de CNC.
+    const PUERTO_DE = { 'Anet ET4': 7211, 'Ender 3 V2': 7213 };
+    const USUARIOS_DEMO = ['demo', 'beto', '', 'demo', ''];   // '' = lo arrancó otra herramienta (Mainsail, la pantalla)
+    const FALLOS_DEMO = {
+        'engranaje_helicoidal_v2.gcode': 'Moonraker: klippy_shutdown',
+        'grabado_placa_aluminio.nc': 'línea 214: el movimiento se sale del área de trabajo permitida',
+    };
+    const HISTORIAL_CNC = [
+        ['dibujo_mandala_plotter.gcode', 'completed', 52 * 60, 0.7],
+        ['grabado_placa_aluminio.nc', 'error', 18 * 60, 1.9],
+        ['marco_logo.nc', 'incomplete', 9 * 60, 4.2],
+        ['plantilla_pcb.nc', 'completed', 74 * 60, 9.0],
+    ];
+
+    function filasHistorial() {
+        const ahora = Math.floor(Date.now() / 1000);
+        const enBiblioteca = new Set(archivosDe('gcode', 'gcode').map(a => a.name));
+        const fila = (r) => Object.assign({
+            host: null, machine_id: null, port: null, error: null, thumbnail: null, thumbnail_url: null,
+            file_url: null, source: 'nopal', user: '',
+        }, r, {
+            deletable: ['error', 'cancelled', 'incomplete'].includes(r.status),
+            library: enBiblioteca.has(r.name) ? { section: 'gcode', path: r.name } : null,
+        });
+        const filas = [];
+        let n = 0;
+        HISTORIAL.forEach(g => g.jobs.forEach(j => {
+            const puerto = PUERTO_DE[g.printer];
+            filas.push(fila({
+                id: '3d:' + puerto + ':' + j.end_time + ':' + j.filename, kind: '3d', name: j.filename,
+                machine: g.printer, machine_id: 'klipper:' + puerto, port: puerto, status: j.status,
+                error: FALLOS_DEMO[j.filename] || null,
+                started_at: j.end_time - j.print_duration, ended_at: j.end_time, duration_s: j.print_duration,
+                user: USUARIOS_DEMO[n++ % USUARIOS_DEMO.length], thumbnail_url: j.thumbnail_url, file_url: j.file_url,
+                source: 'moonraker',
+            }));
+        }));
+        HISTORIAL_LASER.forEach((j, i) => {
+            const dur = (14 + i * 7) * 60;
+            filas.push(fila({
+                id: 'laser:' + j.filename + ':' + j.completed_at, kind: 'laser', name: j.filename,
+                machine: 'Sculpfun S30', host: j.host, machine_id: 'laser:mch_demo0000000041', status: j.state,
+                started_at: j.completed_at - dur, ended_at: j.completed_at, duration_s: dur,
+                user: USUARIOS_DEMO[n++ % USUARIOS_DEMO.length] || 'demo',
+            }));
+        });
+        HISTORIAL_CNC.forEach(([nombre, estado, dur, dias]) => {
+            const fin = Math.floor((Date.now() - dias * DIAS) / 1000);
+            filas.push(fila({
+                id: 'cnc:' + nombre + ':' + fin, kind: 'cnc', name: nombre, machine: 'CNC 3018 Pro',
+                host: '192.0.2.42', machine_id: 'laser:mch_demo0000000042', status: estado,
+                error: FALLOS_DEMO[nombre] || null, started_at: fin - dur, ended_at: fin, duration_s: dur,
+                user: USUARIOS_DEMO[n++ % USUARIOS_DEMO.length] || 'beto',
+            }));
+        });
+        filas.sort((a, b) => (b.ended_at || b.started_at) - (a.ended_at || a.started_at));
+        return { filas, ahora };
+    }
+
+    function respuestaHistorial(consulta) {
+        const q = new URLSearchParams(consulta);
+        const tipo = q.get('kind') || 'all';
+        const dias = parseInt(q.get('days') || '30', 10);
+        const texto = (q.get('q') || '').trim().toLowerCase();
+        const tamanos = [8, 12, 16, 24, 48];
+        const pedido = parseInt(q.get('page_size') || '8', 10);
+        const tamano = tamanos.includes(pedido) ? pedido : 8;
+        const { filas, ahora } = filasHistorial();
+        const alcance = filas.filter(r =>
+            (!dias || (r.ended_at || r.started_at) >= ahora - dias * 86400) &&
+            (!texto || r.name.toLowerCase().includes(texto)));
+        const mostradas = tipo === 'all' ? alcance : alcance.filter(r => r.kind === tipo);
+        const resumen = { '3d': 0, laser: 0, cnc: 0 };
+        alcance.forEach(r => { resumen[r.kind]++; });
+        resumen.total = resumen['3d'] + resumen.laser + resumen.cnc;
+        const paginas = Math.max(1, Math.ceil(mostradas.length / tamano));
+        const pagina = Math.max(1, Math.min(parseInt(q.get('page') || '1', 10), paginas));
+        return {
+            items: mostradas.slice((pagina - 1) * tamano, pagina * tamano), total: mostradas.length,
+            page: pagina, pages: paginas, page_size: tamano, summary: resumen, can_delete: true,
+        };
+    }
+
+    // Registro de control: lo que un administrador dio de baja, con quién y por qué.
+    function registroControl() {
+        const ahora = Date.now() / 1000;
+        const baja = (id, trabajo, hace, motivo) => ({
+            id, job_id: 'demo:' + id, deleted_at: ahora - hace * DIAS / 1000, deleted_by: 'demo', reason: motivo,
+            job: { name: trabajo[0], machine: trabajo[1], kind: trabajo[2], status: trabajo[3] },
+        });
+        const entradas = [
+            baja('a1b2c3d4e5f6', ['prueba_calibracion_z.gcode', 'Ender 3 V2', '3d', 'cancelled'], 2.2, 'Prueba de calibración cancelada a propósito'),
+            baja('f6e5d4c3b2a1', ['corte_prueba_madera.nc', 'Sculpfun S30', 'laser', 'error'], 6.5, 'Archivo equivocado: se volvió a enviar el correcto'),
+        ];
+        return { deletions: entradas, total: entradas.length };
+    }
+
+    // Exportar el resumen: el demo entrega un archivo de ejemplo, XML o PDF mínimo.
+    function pdfMinimo(texto) {
+        const flujo = 'BT /F1 14 Tf 56 780 Td (' + texto.replace(/[()\\]/g, ' ') + ') Tj ET';
+        const objetos = [
+            '<< /Type /Catalog /Pages 2 0 R >>',
+            '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+            '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
+            '<< /Length ' + flujo.length + ' >>\nstream\n' + flujo + '\nendstream',
+            '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+        ];
+        let pdf = '%PDF-1.4\n';
+        const desplazamientos = [];
+        objetos.forEach((o, i) => { desplazamientos.push(pdf.length); pdf += (i + 1) + ' 0 obj\n' + o + '\nendobj\n'; });
+        const xref = pdf.length;
+        pdf += 'xref\n0 ' + (objetos.length + 1) + '\n0000000000 65535 f \n' +
+            desplazamientos.map(d => String(d).padStart(10, '0') + ' 00000 n \n').join('') +
+            'trailer\n<< /Size ' + (objetos.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF';
+        return pdf;
+    }
+
+    function exportarHistorial(consulta) {
+        const q = new URLSearchParams(consulta);
+        const formato = q.get('format') === 'xml' ? 'xml' : 'pdf';
+        const { items } = respuestaHistorial(consulta.replace(/page_size=\d+/, '') + '&page_size=48');
+        const nombre = 'historial-trabajos-demo.' + formato;
+        const cabeceras = { 'Content-Disposition': 'attachment; filename="' + nombre + '"' };
+        if (formato === 'xml') {
+            const filas = items.map(r => '  <trabajo tipo="' + r.kind + '" estado="' + r.status + '"><archivo>' + r.name + '</archivo><maquina>' + r.machine + '</maquina></trabajo>').join('\n');
+            return new Response('<?xml version="1.0" encoding="UTF-8"?>\n<historial_trabajos demo="true">\n' + filas + '\n</historial_trabajos>\n',
+                { status: 200, headers: Object.assign({ 'Content-Type': 'application/xml' }, cabeceras) });
+        }
+        return new Response(pdfMinimo('NOPAL - Historial de trabajos (archivo de ejemplo del demo)'),
+            { status: 200, headers: Object.assign({ 'Content-Type': 'application/pdf' }, cabeceras) });
+    }
+
     // ── Carpetas y archivos ───────────────────────────────────────────
     // /api/browse sirve las dos bibliotecas (modelos y G-code) según su
     // parámetro `type`. Se arma desde una sola lista para que un archivo
@@ -1294,6 +1429,28 @@
         /^\/api\/ai\/tools\//,
     ];
 
+    // El core pide las miniaturas con <img src="/api/models/thumbnail?...">, que no pasa por fetch: contra
+    // el servidor estático daría 404. Se reescribe a la miniatura dibujada del demo en los tres sitios por
+    // donde puede entrar una imagen: la propiedad src, innerHTML e insertAdjacentHTML.
+    const RE_MINIATURA = /\/api\/(?:models|gcode)\/thumbnail\?([^"'\s>)]*)/g;
+    function miniaturaDeUrl(query) {
+        const ruta = new URLSearchParams(query.replace(/&amp;/g, '&')).get('path') || '';
+        return 'static/demo/thumbs/' + miniaturaDe(ruta) + '.webp';
+    }
+    const reescribirHtml = (html) => (typeof html === 'string' ? html.replace(RE_MINIATURA, (_, q) => miniaturaDeUrl(q)) : html);
+    (function () {
+        const src = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+        Object.defineProperty(HTMLImageElement.prototype, 'src', Object.assign({}, src, {
+            set(valor) { src.set.call(this, reescribirHtml(valor)); },
+        }));
+        const inner = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+        Object.defineProperty(Element.prototype, 'innerHTML', Object.assign({}, inner, {
+            set(valor) { inner.set.call(this, reescribirHtml(valor)); },
+        }));
+        const insertar = Element.prototype.insertAdjacentHTML;
+        Element.prototype.insertAdjacentHTML = function (posicion, html) { return insertar.call(this, posicion, reescribirHtml(html)); };
+    })();
+
     function json(cuerpo, status = 200) {
         return new Response(JSON.stringify(cuerpo), {
             status,
@@ -1311,6 +1468,39 @@
 
         const camino = url.split('?')[0];
         const metodo = ((init && init.method) || 'GET').toUpperCase();
+
+        // Historial de trabajos con control, y las rutas nuevas de láser/CNC (solo lectura).
+        if (metodo === 'GET') {
+            const consulta = url.split('?')[1] || '';
+            if (camino === '/api/jobs/history') return json(respuestaHistorial(consulta));
+            if (camino === '/api/jobs/history/export') return exportarHistorial(consulta);
+            if (camino === '/api/jobs/deletions') return json(registroControl());
+            if (camino === '/api/laser/sd/status') return json({ present: new URLSearchParams(consulta).get('host') === '192.0.2.42' });
+            if (camino === '/api/laser/job/last') return json({ job: null });
+            if (camino === '/api/laser/info') {
+                const cnc = new URLSearchParams(consulta).get('host') === '192.0.2.42';
+                return json({ Device: cnc ? 'CNC 3018 Pro' : 'Sculpfun S30', Chip: 'ESP32', Firmware: cnc ? 'GRBL 1.1h' : 'GRBL 1.1f',
+                    Description: 'Placa GRBL por WiFi' });
+            }
+            if (camino === '/api/laser/registry/status') return json({ lasers: rutas['/api/laser/registry']().lasers.map(l => Object.assign({ online: true }, l)) });
+            // Tarjetas de Configuración que esperan una forma concreta (sin ella el recuadro revienta).
+            if (camino === '/api/config-backup/groups') {
+                const g = (id, label, sensitive, warning) => ({ id, label, sensitive, warning: warning || null, available: true, file_count: 1 });
+                return json({ groups: [
+                    g('printers', 'Impresoras 3D', false), g('laser_cnc', 'Láser y CNC', false),
+                    g('logging', 'Registro (logs)', false), g('accessories', 'Accesorios y placas', false),
+                    g('cameras', 'Cámaras', false), g('presets', 'Presets de temperatura', false),
+                    g('pricing', 'Cotizador (precios y cotizaciones)', false), g('spoolman', 'Materiales (Spoolman)', false),
+                    g('plugins', 'Plugins instalados', false),
+                    g('users', 'Usuarios y contraseñas', true, 'Incluye los hashes de contraseña de todas las cuentas.'),
+                    g('ai', 'NOPAL Intelligence', true, 'Incluye la clave de API de tu proveedor de IA, en claro dentro del archivo.'),
+                ] });
+            }
+            if (camino === '/api/system/diagnostics') {
+                return json({ app_version: '1.2.0-alpha', commit: null, branch: null, os: 'Debian GNU/Linux 13',
+                    architecture: 'x86_64', python_version: '3.13' });
+            }
+        }
 
         for (const [patron, efecto] of acciones) {
             if (patron.test(camino)) {
@@ -1392,9 +1582,9 @@
         if (camino === '/api/laser/status') {
             const host = new URLSearchParams(url.split('?')[1] || '').get('host');
             return json(host === '192.0.2.42'
-                ? { connected: true, host, state: cnc.estado, firmware: 'GRBL 1.1h', spindle_rpm: 0, feed: 0 }
+                ? { connected: true, host, state: cnc.estado, firmware: 'GRBL 1.1h', spindle_rpm: 0, feed: 0, x: 0, y: 0, z: 0, speed: 0 }
                 : { connected: true, host: '192.0.2.41', state: 'Run', firmware: 'GRBL 1.1f',
-                    laser_power: 780, feed: 1400, progress: Math.round(laser.progress) });
+                    laser_power: 780, feed: 1400, x: 62.4, y: 38.15, z: 0, speed: 780, progress: Math.round(laser.progress) });
         }
 
         if (metodo !== 'GET' && !ESCRITURA_OK.some(p => p.test(camino))) {

@@ -16,7 +16,7 @@ Two 3D printers, a laser and a CNC that update by themselves, spools losing gram
 
 Bug in the dashboard? It belongs in [charlymigenes-ux/nopal](https://github.com/charlymigenes-ux/nopal).
 
-Built from core commit **`92e5443`** (v1.2.0-alpha.1, 2026-08-19).
+Built from core commit **`a5853dc`** (v1.2.0-alpha.1, 2026-10-17).
 
 ## How it works
 
@@ -36,23 +36,44 @@ Every write that isn't part of the tour returns `403`: no saving settings, insta
 
 ## Rebuilding it
 
-From a NOPAL checkout, copy in:
+One command does it. From the root of this repository:
+
+```bash
+python build.py --core ../nopal --plugins ..
+```
+
+- `--core` is a checkout of NOPAL (`main`).
+- `--plugins` is the folder that holds the plugin repositories (`matriz-led`, `nopal-plugin-arduino-accessories`, …).
+- It needs Python 3.9+ and Pillow, which the core already lists in its `requirements.txt`.
+
+Then **test it locally** (for example `python -m http.server` in this folder) and commit. The script is idempotent: running it twice changes nothing.
+
+### What the script does
 
 | From the core | To here |
 | --- | --- |
 | `backend/templates/index.html` | `index.html` |
-| `backend/static/{css,js,img}` | `static/` |
+| `backend/static/{css,js,img,audio}` | `static/` |
 | `backend/plugin_catalog.json` | `plugin_catalog.json` |
-| `plugins/*/frontend/` | `plugins-static/<id>/frontend/` |
+| `<plugin repo>/frontend` and `nopal-plugin.json` | `plugins-static/<id>/` |
 
-Then:
+1. **Rewrites asset paths to relative.** `"/static/…"` → `"static/…"`, and `url('/static/…')` in CSS → `url('../…')`. The site lives in a subfolder; a leading slash points outside it.
+2. **Inserts `demo-data.js`** before `app.js`, with a `?v=` taken from the file's hash so browsers never serve a stale copy.
+3. **Converts images to WebP.** Only new or changed images are re-encoded; `build-cache.json` records the hash of every source image.
+4. **Trims the font catalogue** to six families, or the page weighs 58 MB instead of 12.
+5. **Patches `app.js`** in two places: `applyThemeWallpaper()` and the plugin gallery banner resolve their URL with `new URL(…, document.baseURI)`. A relative path inside a CSS custom property is resolved against the *stylesheet* that uses the variable, not the page — without this, every wallpaper and banner returns 404.
 
-1. **Rewrite asset paths to relative.** `"/static/…"` → `"static/…"`, including inside `url()` in CSS. The site lives in a subfolder; a leading slash points outside it.
-2. **Insert the script**, before `app.js`: `<script src="static/js/demo-data.js?v=N"></script>` — bump `N` so browsers don't serve a stale copy.
-3. **Convert images to WebP** and trim the font catalogue, or the page weighs 58 MB instead of 12.
-4. In `app.js`, keep `applyThemeWallpaper()` resolving its URL with `new URL(…, document.baseURI)`. A relative path inside a CSS custom property is resolved against the *stylesheet* that uses the variable, not the page — without this, every configurable wallpaper 404s.
+If the core changes one of the lines the script patches, it stops with a message instead of producing a broken demo.
 
-Keep `demo-data.js`, `static/demo/` and this README: they are the only things authored here.
+### After rebuilding
+
+`demo-data.js` answers every `/api/…` call the dashboard makes, so a new core feature that calls a new route needs a handler there. Anything unhandled gets an empty reply with the usual shape (the screens show "no data" instead of an error). To find what is missing, open each section with the browser's network tab and look for empty replies.
+
+Keep `demo-data.js`, `static/demo/`, `build.py`, `build-cache.json` and this README: they are the only things authored here.
+
+### Planned
+
+Rebuilding is still a manual step. The next one is a GitHub Actions workflow that checks out the core and the plugins, runs `build.py` and opens a pull request, on demand and once a week.
 
 ## Credits and licence
 
