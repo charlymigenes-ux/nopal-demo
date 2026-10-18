@@ -40,6 +40,11 @@
     localStorage.setItem('printersViewMode', 'grid');
     localStorage.setItem('showOfflineMachines', 'true');
 
+    // El recorrido guiado arranca apagado: quien visita el demo viene a mirar, y el cuadro del recorrido
+    // le tapa la pantalla en cada sección. Se puede volver a encender en Configuración → General
+    // ("Recorrido guiado"). Como lo demás, se fija en cada carga.
+    localStorage.setItem('onboardingHintsEnabled', 'false');
+
     // El panel superior se repliega solo y se vuelve a abrir al pasar el
     // ratón por encima, en vez de quedarse fijo comiéndose la pantalla.
     localStorage.setItem('panelHeroAutoHideMode', 'hover');

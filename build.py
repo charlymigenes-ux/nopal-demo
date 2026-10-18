@@ -81,7 +81,13 @@ def to_webp_refs(text: str) -> str:
     return IMG_EXT.sub(r"\1.webp", text)
 
 
+# import("/static/js/x.js") -> import("./x.js"): un import dinámico con "static/js/x.js" sería un
+# especificador "desnudo" y el navegador lo rechaza ("Failed to resolve module specifier").
+DYNAMIC_IMPORT = re.compile(r"""import\((["'])/static/js/([^"']+)\1\)""")
+
+
 def relative_html(text: str) -> str:
+    text = DYNAMIC_IMPORT.sub(lambda m: f"import({m.group(1)}./{m.group(2)}{m.group(1)})", text)
     return to_webp_refs(text.replace("/static/", "static/"))
 
 
@@ -102,6 +108,8 @@ def clean() -> None:
         for f in js.iterdir():
             if f.is_file() and f.name not in KEEP_JS:
                 f.unlink()
+            elif f.is_dir():
+                shutil.rmtree(f)
     shutil.rmtree(ROOT / "plugins-static", ignore_errors=True)
 
 
@@ -153,11 +161,12 @@ def build_static(core: Path) -> None:
     src = core / "backend" / "static"
     for f in (src / "css").glob("*.css"):
         write(ROOT / "static" / "css" / f.name, relative_css(read(f)))
-    for f in (src / "js").glob("*.js"):
+    # También las subcarpetas (static/js/visor/: el visor 2D del editor, que app.js carga con import()).
+    for f in sorted((src / "js").rglob("*.js")):
         text = relative_html(read(f))
         if f.name == "app.js":
             text = patch_banner(patch_wallpaper(text))
-        write(ROOT / "static" / "js" / f.name, text)
+        write(ROOT / "static" / "js" / f.relative_to(src / "js"), text)
     # Sonidos de alerta (opcionales en la interfaz)
     shutil.copytree(src / "audio", ROOT / "static" / "audio")
     build_images(src / "img")

@@ -25196,7 +25196,7 @@ document.getElementById('backup-import-input')?.addEventListener('change', async
         if (visor || montando) return visor;
         montando = true;
         try {
-            const mod = await import('static/js/visor/viewer.js');
+            const mod = await import('./visor/viewer.js');
             visor = new mod.GcodeViewer(lienzo, {
                 workArea: { w: 420, h: 300 },
                 supersample: 2   // los rásters tramados se ven como mancha a 1x
@@ -25417,7 +25417,7 @@ document.getElementById('backup-import-input')?.addEventListener('change', async
                 if (!url) continue;
                 img.classList.add('is-cargando');
                 try {
-                    const mod = await import('static/js/visor/thumbnail.js');
+                    const mod = await import('./visor/thumbnail.js');
                     const datos = await mod.miniatura(url);
                     if (datos) { img.src = datos; img.classList.remove('is-cargando'); }
                     else img.remove();
